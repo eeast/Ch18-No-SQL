@@ -5,7 +5,7 @@ const { Thought, User } = require('../models');
 module.exports = {
     async getThoughts(req, res) {
         try {
-            const thoughts = await Thought.find().populate('reactions');
+            const thoughts = await Thought.find().populate('reactions').select('-__v');
 
             return res.json(thoughts);
         } catch (err) {
@@ -15,7 +15,7 @@ module.exports = {
     },
     async getSingleThought(req, res) {
         try {
-            const thought = await Thought.findOne({ _id: req.params.thoughtId }).populate('reactions');
+            const thought = await Thought.findOne({ _id: req.params.thoughtId }).populate('reactions').select('-__v');
 
             if (!thought) {
                 return res.status(404).json({ message: 'No thought with that ID' });
@@ -103,7 +103,7 @@ module.exports = {
             if (!thought) {
                 return res
                     .status(404)
-                    .json({ message: 'No thought found with that ID :(' })
+                    .json({ message: 'No thought found with that ID' })
             }
 
             res.json(thought);
@@ -116,8 +116,8 @@ module.exports = {
         try {
             const thought = await Thought.findOneAndUpdate(
                 { _id: req.params.thoughtId },
-                { $pull: { reaction: { reactionId: req.params.reactionId } } },
-                { runValidators: true, new: true }
+                { $pull: { reactions: { reactionId: req.params.reactionId } } },
+                { runValidators: true, safe: true, new: true }
             );
 
             if (!thought) {
